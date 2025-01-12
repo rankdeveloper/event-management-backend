@@ -1,18 +1,29 @@
 const Event = require("../models/Event");
 
 const postEvent = async (req, res) => {
-  const { name, description, date, category } = req.body;
-  const newEvent = new Event({
-    name,
-    description,
-    date,
-    category,
-    ownerId: req.user.id,
-    attendees: [],
-  });
+  try {
+    console.log("Request Headers:", req.headers);
+    console.log("Request Body:", req.body);
+    const { name, description, date, category } = req.body;
 
-  await newEvent.save();
-  res.json(newEvent);
+    if (!name || !description || !date || !category) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    const newEvent = new Event({
+      name,
+      description,
+      date,
+      category,
+      ownerId: req.user.id,
+      attendees: [],
+    });
+
+    await newEvent.save();
+    res.json(newEvent);
+  } catch (error) {
+    console.error("error creating event:", error);
+    res.status(500).json({ message: "internal server error" });
+  }
 };
 
 const getEvents = async (req, res) => {
