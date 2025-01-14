@@ -67,7 +67,7 @@ const login = async (req, res) => {
   }
 };
 
-export const enterMe = async (req, res, next) => {
+const enterMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.userId).select("-password");
     if (!user) {
@@ -85,7 +85,7 @@ export const enterMe = async (req, res, next) => {
   }
 };
 
-export const logout = (req, res) => {
+const logout = (req, res) => {
   res.cookie("token", "", {
     httpOnly: true,
     expires: new Date(0),
