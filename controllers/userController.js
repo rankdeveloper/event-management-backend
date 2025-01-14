@@ -67,7 +67,35 @@ const login = async (req, res) => {
   }
 };
 
+export const enterMe = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = (req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+  res.json({ message: "Logged out successfully" });
+};
+
 module.exports = {
   register,
   login,
+  enterMe,
+  logout,
 };
