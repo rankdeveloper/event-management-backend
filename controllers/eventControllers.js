@@ -4,18 +4,34 @@ const postEvent = async (req, res) => {
   try {
     console.log("Request Headers:", req.headers);
     console.log("Request Body:", req.body);
-    const { name, description, date, category } = req.body;
+    const {
+      title,
+      description,
+      date,
+      location,
+      category,
+      maxAttendees,
+      createdBy,
+    } = req.body;
 
-    if (!name || !description || !date || !category) {
+    if (
+      !title ||
+      !description ||
+      !date ||
+      !location ||
+      !category ||
+      !createdBy
+    ) {
       return res.status(400).json({ message: "All fields are required" });
     }
     const newEvent = new Event({
-      name,
+      title,
       description,
       date,
+      location,
       category,
-      ownerId: req.user.id,
-      attendees: [],
+      maxAttendees,
+      createdBy,
     });
 
     await newEvent.save();
