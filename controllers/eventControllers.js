@@ -87,10 +87,71 @@ const deleteEvent = async (req, res) => {
   res.json({ message: "Event deleted successfully" });
 };
 
+const registerForEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (event.attendees.includes(req.userId)) {
+      return res
+        .status(400)
+        .json({ message: "Already registered for this event" });
+    }
+
+    if (event.attendees.length >= event.maxAttendees) {
+      return res.status(400).json({ message: "Event is full" });
+    }
+
+    event.attendees.push(req.userId);
+    await event.save();
+
+    const updatedEvent = await Event.findById(req.params.id)
+      .populate("createdBy", "username")
+      .populate("attendees", "username");
+
+    res.json(updatedEvent);
+  } catch (error) {
+    console.error("Error registering for event:", error);
+    res.status(500).json({ message: "Error registering for event" });
+  }
+};
+const unregisterFromEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    if (!event.attendees.includes(req.userId)) {
+      return res.status(400).json({ message: "Not registered for this event" });
+    }
+
+    event.attendees = event.attendees.filter(
+      (attendee) => attendee.toString() !== req.userId
+    );
+    await event.save();
+
+    const updatedEvent = await Event.findById(req.params.id)
+      .populate("createdBy", "username")
+      .populate("attendees", "username");
+
+    res.json(updatedEvent);
+  } catch (error) {
+    console.error("Error unregistering from event:", error);
+    res.status(500).json({ message: "Error unregistering from event" });
+  }
+};
+
 module.exports = {
   postEvent,
   getEvents,
   updateEvent,
   deleteEvent,
   getOneEvent,
+  registerForEvent,
+  unregisterFromEvent,
 };
