@@ -2,20 +2,29 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 function authenticateToken(req, res, next) {
-  console.log("Authenticated user:", req.user);
-  console.log("Request body:", req.body);
+  const authHeader = req.headers["authorization"];
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: Token missing or malformed" });
+  }
 
-  const token = req.headers["authorization"]?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "Unauthorized" });
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: Token not provided" });
+  }
 
-  jwt.verify(token, process.env.secret_key_jwt, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: "user dont have persmission" });
-    }
-    console.log("Authenticated user:", user);
-    req.user = user;
+  try {
+    const decoded = jwt.verify(token, process.env.secret_key_jwt);
+    req.userId = decoded.id;
+
     next();
-  });
+  } catch (err) {
+    console.error("Token verification failed:", err.message);
+    res.status(401).json({ message: "Unauthorized: Invalid token" });
+  }
 }
 
 module.exports = { authenticateToken };
