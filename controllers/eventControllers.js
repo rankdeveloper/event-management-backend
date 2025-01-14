@@ -47,6 +47,25 @@ const getEvents = async (req, res) => {
   res.json(events);
 };
 
+const getOneEvent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Event ID is required" });
+    }
+
+    const event = await Event.findById(id);
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+    res.json(event);
+  } catch (error) {
+    console.error("Error fetching event:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const updateEvent = async (req, res) => {
   const event = await Event.findById(req.params.id);
   if (!event || event.ownerId.toString() !== req.user.id) {
@@ -73,4 +92,5 @@ module.exports = {
   getEvents,
   updateEvent,
   deleteEvent,
+  getOneEvent,
 };
