@@ -18,7 +18,8 @@ function authenticateToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.secret_key_jwt);
-    req.userId = decoded.id;
+    // req.userId = decoded.id;
+    req.user = { id: decoded.id };
 
     next();
   } catch (err) {

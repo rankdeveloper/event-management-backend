@@ -68,7 +68,7 @@ const getOneEvent = async (req, res) => {
 
 const updateEvent = async (req, res) => {
   const event = await Event.findById(req.params.id);
-  if (!event || event.ownerId.toString() !== req.user.id) {
+  if (!event || event.createdBy.toString() !== req.user.id) {
     return res.status(403).json({ message: "Forbidden" });
   }
 
@@ -79,7 +79,7 @@ const updateEvent = async (req, res) => {
 
 const deleteEvent = async (req, res) => {
   const event = await Event.findById(req.params.id);
-  if (!event || event.ownerId.toString() !== req.user.id) {
+  if (!event || event.createdBy.toString() !== req.user.id) {
     return res.status(403).json({ message: "Forbidden" });
   }
 
@@ -95,7 +95,7 @@ const registerForEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    if (event.attendees.includes(req.userId)) {
+    if (event.attendees.includes(req.user.id)) {
       return res
         .status(400)
         .json({ message: "Already registered for this event" });
@@ -105,7 +105,7 @@ const registerForEvent = async (req, res) => {
       return res.status(400).json({ message: "Event is full" });
     }
 
-    event.attendees.push(req.userId);
+    event.attendees.push(req.user.id);
     await event.save();
 
     const updatedEvent = await Event.findById(req.params.id)
@@ -126,12 +126,12 @@ const unregisterFromEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
-    if (!event.attendees.includes(req.userId)) {
+    if (!event.attendees.includes(req.user.id)) {
       return res.status(400).json({ message: "Not registered for this event" });
     }
 
     event.attendees = event.attendees.filter(
-      (attendee) => attendee.toString() !== req.userId
+      (attendee) => attendee.toString() !== req.user.id
     );
     await event.save();
 
