@@ -14,6 +14,13 @@ const postEvent = async (req, res) => {
       createdBy,
     } = req.body;
 
+    if (new Date(date) < new Date()) {
+      return res
+        .status(500)
+        .json({ message: "Event Date should not not be in past" });
+      return;
+    }
+
     if (
       !title ||
       !description ||
@@ -54,7 +61,9 @@ const getOneEvent = async (req, res) => {
       return res.status(400).json({ message: "Event ID is required" });
     }
 
-    const event = await Event.findById(id);
+    const event = await Event.findById(id)
+      .populate("createdBy", "username email")
+      .populate("attendees", "username email");
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });

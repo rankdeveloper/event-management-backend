@@ -31,12 +31,10 @@ const EventSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  attendees: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
+  attendees: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User"
+  }],
   createdAt: {
     type: Date,
     default: Date.now,
