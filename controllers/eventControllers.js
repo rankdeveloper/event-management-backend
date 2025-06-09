@@ -1,3 +1,6 @@
+const cloudinary = require("../config/cloudinary");
+
+const streamifier = require("streamifier");
 const Event = require("../models/Event");
 
 const postEvent = async (req, res) => {
@@ -31,6 +34,23 @@ const postEvent = async (req, res) => {
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
+    const imageFile = req.file;
+
+    let uploadedImageUrl = null;
+
+    if (imageFile) {
+      uploadedImageUrl = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "event_images" },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        streamifier.createReadStream(imageFile.buffer).pipe(stream);
+      });
+    }
+
     const newEvent = new Event({
       title,
       description,
@@ -39,6 +59,7 @@ const postEvent = async (req, res) => {
       category,
       maxAttendees,
       createdBy,
+      image: uploadedImageUrl || null,
     });
 
     await newEvent.save();

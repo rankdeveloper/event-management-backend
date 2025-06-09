@@ -1,4 +1,7 @@
 const express = require("express");
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
+
 const router = express.Router();
 const {
   postEvent,
@@ -11,7 +14,7 @@ const {
 } = require("../controllers/eventControllers");
 const { authenticateToken } = require("../middlewares/authenticate");
 
-router.post("/", authenticateToken, postEvent);
+router.post("/", upload.single("image"), authenticateToken, postEvent);
 
 router.get("/", getEvents);
 router.get("/:id", authenticateToken, getOneEvent);
