@@ -16,6 +16,7 @@ const postEvent = async (req, res) => {
       maxAttendees,
       createdBy,
     } = req.body;
+    const imageFile = req.file;
 
     if (new Date(date) < new Date()) {
       return res
@@ -30,18 +31,19 @@ const postEvent = async (req, res) => {
       !date ||
       !location ||
       !category ||
-      !createdBy
+      !createdBy ||
+      !imageFile
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const imageFile = req.file;
 
     let uploadedImageUrl = null;
 
     if (imageFile) {
       uploadedImageUrl = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "event_images" },
+        const stream = cloudinary.uploader.unsigned_upload_stream(
+          "events",
+          {},
           (error, result) => {
             if (error) return reject(error);
             resolve(result.secure_url);
@@ -102,9 +104,73 @@ const updateEvent = async (req, res) => {
     return res.status(403).json({ message: "Forbidden" });
   }
 
-  Object.assign(event, req.body);
-  await event.save();
-  res.json(event);
+  console.log("req data ", req);
+
+  try {
+    const {
+      title,
+      description,
+      date,
+      location,
+      category,
+      maxAttendees,
+      createdBy,
+    } = req.body;
+    const imageFile = req.file;
+
+    if (new Date(date) < new Date()) {
+      return res
+        .status(500)
+        .json({ message: "Event Date should not not be in past" });
+      return;
+    }
+
+    if (
+      !title ||
+      !description ||
+      !date ||
+      !location ||
+      !category ||
+      !createdBy ||
+      !imageFile
+    ) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    let uploadedImageUrl = null;
+
+    if (imageFile) {
+      uploadedImageUrl = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.unsigned_upload_stream(
+          "events",
+          {},
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        streamifier.createReadStream(imageFile.buffer).pipe(stream);
+      });
+    }
+
+    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, {
+      title,
+      description,
+      date,
+      location,
+      category,
+      maxAttendees,
+      createdBy,
+      image: uploadedImageUrl || null,
+    });
+
+    const newEvent = await updatedEvent.save();
+
+    res.json(newEvent);
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ message: "Internal server error", error });
+  }
 };
 
 const deleteEvent = async (req, res) => {

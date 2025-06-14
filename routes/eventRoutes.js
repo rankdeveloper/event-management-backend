@@ -18,7 +18,7 @@ router.post("/", upload.single("image"), authenticateToken, postEvent);
 
 router.get("/", getEvents);
 router.get("/:id", authenticateToken, getOneEvent);
-router.put("/:id", authenticateToken, updateEvent);
+router.put("/:id", upload.single("image"), authenticateToken, updateEvent);
 
 router.delete("/:id", authenticateToken, deleteEvent);
 router.post("/:id/register", authenticateToken, registerForEvent);

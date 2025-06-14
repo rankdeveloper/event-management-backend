@@ -46,6 +46,8 @@ app.use(express.urlencoded({ extended: true }));
 const PORT = process.env.PORT || 5000;
 connectDB();
 
+console.log("Cloudinary API Key:", process.env.API_KEY);
+
 app.use("/user", userRoutes);
 app.use("/events", eventRoutes);
 
