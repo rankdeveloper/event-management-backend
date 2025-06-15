@@ -12,9 +12,13 @@ const {
   getOneEvent,
   registerForEvent,
   unregisterFromEvent,
+  statsForChart,
 } = require("../controllers/eventControllers");
 const { authenticateToken } = require("../middlewares/authenticate");
 
+
+//dashboard
+router.get("/stats", statsForChart);
 router.post("/", upload.single("image"), authenticateToken, postEvent);
 
 router.get("/", getEvents);
@@ -25,5 +29,7 @@ router.put("/completed/:id", authenticateToken, completedEvent);
 router.delete("/:id", authenticateToken, deleteEvent);
 router.post("/:id/register", authenticateToken, registerForEvent);
 router.delete("/:id/register", authenticateToken, unregisterFromEvent);
+
+
 
 module.exports = router;

@@ -73,8 +73,10 @@ const postEvent = async (req, res) => {
 };
 
 const getEvents = async (req, res) => {
-  const events = await Event.find();
-  res.json(events);
+
+  const upComingEvents = await Event.find({ date: { $gte: new Date() } });
+  // const events = await Event.find();
+  res.json(upComingEvents);
 };
 
 const getOneEvent = async (req, res) => {
@@ -258,6 +260,115 @@ const completedEvent = async (req, res) => {
   }
 };
 
+// dashboard status
+
+const statsForChart = async (req, res) => {
+  try {
+    const eventTypes = await Event.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          total: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          total: 1,
+        },
+      },
+    ]);
+
+
+    const completedEvents = await Event.aggregate([
+      {
+        $match: { completed: true },
+
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          total: 1,
+        },
+      },
+    ]);
+
+    const activeEvents = await Event.aggregate([
+      {
+        $match: { completed: false },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          total: 1,
+        },
+      },
+    ]);
+
+    const totalAttendees = await Event.aggregate([
+      {
+        $project: {
+          attendeeCount: { $size: "$attendees" }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$attendeeCount" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          total: 1
+        }
+      }
+    ]);
+
+
+    const prevMonthEvents = await Event.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+            $lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          total: 1
+        }
+      }
+    ]);
+
+    res.json({ eventTypes, completedEvents, activeEvents, totalAttendees, prevMonthEvents });
+  } catch (error) {
+    console.error("Error fetching event statistics:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   postEvent,
   getEvents,
@@ -267,4 +378,5 @@ module.exports = {
   registerForEvent,
   unregisterFromEvent,
   completedEvent,
+  statsForChart,
 };
