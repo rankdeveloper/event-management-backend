@@ -44,6 +44,10 @@ const EventSchema = new mongoose.Schema({
   image: {
     type: String,
   },
+
+  completed: {
+    type: Boolean,
+  },
 });
 
 const Event = mongoose.model("Event", EventSchema);

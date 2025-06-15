@@ -7,6 +7,7 @@ const {
   postEvent,
   getEvents,
   updateEvent,
+  completedEvent,
   deleteEvent,
   getOneEvent,
   registerForEvent,
@@ -19,6 +20,7 @@ router.post("/", upload.single("image"), authenticateToken, postEvent);
 router.get("/", getEvents);
 router.get("/:id", authenticateToken, getOneEvent);
 router.put("/:id", upload.single("image"), authenticateToken, updateEvent);
+router.put("/completed/:id", authenticateToken, completedEvent);
 
 router.delete("/:id", authenticateToken, deleteEvent);
 router.post("/:id/register", authenticateToken, registerForEvent);

@@ -242,6 +242,22 @@ const unregisterFromEvent = async (req, res) => {
   }
 };
 
+const completedEvent = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    console.log("eventId , ", eventId);
+    const { completed } = req.body;
+
+    await Event.findByIdAndUpdate(req.params.id, { completed });
+    res.status(200).json({ message: "Event completion status updated" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to update event completion", error });
+    console.log("Completed error : ", error);
+  }
+};
+
 module.exports = {
   postEvent,
   getEvents,
@@ -250,4 +266,5 @@ module.exports = {
   getOneEvent,
   registerForEvent,
   unregisterFromEvent,
+  completedEvent,
 };
