@@ -73,7 +73,6 @@ const postEvent = async (req, res) => {
 };
 
 const getEvents = async (req, res) => {
-
   const upComingEvents = await Event.find({ date: { $gte: new Date() } });
   // const events = await Event.find();
   res.json(upComingEvents);
@@ -280,11 +279,9 @@ const statsForChart = async (req, res) => {
       },
     ]);
 
-
     const completedEvents = await Event.aggregate([
       {
         $match: { completed: true },
-
       },
       {
         $group: {
@@ -321,48 +318,63 @@ const statsForChart = async (req, res) => {
     const totalAttendees = await Event.aggregate([
       {
         $project: {
-          attendeeCount: { $size: "$attendees" }
-        }
+          attendeeCount: { $size: "$attendees" },
+        },
       },
       {
         $group: {
           _id: null,
-          total: { $sum: "$attendeeCount" }
-        }
+          total: { $sum: "$attendeeCount" },
+        },
       },
       {
         $project: {
           _id: 0,
-          total: 1
-        }
-      }
+          total: 1,
+        },
+      },
     ]);
-
 
     const prevMonthEvents = await Event.aggregate([
       {
         $match: {
           date: {
-            $gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-            $lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-          }
-        }
+            $gte: new Date(
+              new Date().getFullYear(),
+              new Date().getMonth() - 1,
+              1
+            ),
+            $lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
+        },
       },
       {
         $group: {
           _id: null,
-          total: { $sum: 1 }
-        }
+          total: { $sum: 1 },
+        },
       },
       {
         $project: {
           _id: 0,
-          total: 1
-        }
-      }
+          total: 1,
+        },
+      },
     ]);
 
-    res.json({ eventTypes, completedEvents, activeEvents, totalAttendees, prevMonthEvents });
+    //total events
+    const totalEvents = await (await Event.find()).length;
+    const upComingEvents = await Event.find({ date: { $gte: new Date() } });
+
+    res.json({
+      totalEvents: totalEvents,
+      completedEvents: completedEvents[0]?.total || 0,
+      activeEvents: activeEvents[0]?.total || 0,
+      totalAttendees: totalAttendees[0]?.total || 0,
+      prevMonthEvents: prevMonthEvents[0]?.total || 0,
+      upComingEvents,
+      eventTypes,
+    });
   } catch (error) {
     console.error("Error fetching event statistics:", error);
     res.status(500).json({ message: "Internal server error" });
