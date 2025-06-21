@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
 const { authenticateToken } = require("../middlewares/authenticate");
 const {
   register,
@@ -14,6 +16,6 @@ router.post("/register", register);
 router.post("/login", login);
 router.get("/me", authenticateToken, enterMe);
 router.post("/logout", logout);
-router.put("/update", authenticateToken, updateUser);
+router.put("/update", upload.single("pic"), authenticateToken, updateUser);
 
 module.exports = router;

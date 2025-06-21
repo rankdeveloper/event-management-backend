@@ -1,6 +1,9 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const cloudinary = require("../config/cloudinary");
+
+const streamifier = require("streamifier");
 
 const register = async (req, res) => {
   try {
@@ -80,6 +83,7 @@ const enterMe = async (req, res, next) => {
         id: user._id,
         email: user.email,
         username: user.username,
+        pic: user.pic,
       },
     });
   } catch (error) {
@@ -98,6 +102,8 @@ const logout = (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { username } = req.body;
+    const imageFile = req.file;
+    console.log("req", req);
     if (!username) {
       return res.status(400).json({ message: "Username is required" });
     }
@@ -106,8 +112,25 @@ const updateUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    let uploadedImageUrl = null;
+
+    if (imageFile) {
+      uploadedImageUrl = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.unsigned_upload_stream(
+          "events",
+          {},
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result.secure_url);
+          }
+        );
+        streamifier.createReadStream(imageFile.buffer).pipe(stream);
+      });
+    }
 
     user.username = username;
+    user.pic = uploadedImageUrl;
+    console.log("uploadedImageUrl", uploadedImageUrl);
     await user.save();
 
     res.json({
@@ -115,6 +138,7 @@ const updateUser = async (req, res) => {
         id: user._id,
         email: user.email,
         username: user.username,
+        pic: user.pic,
       },
     });
   } catch (error) {
