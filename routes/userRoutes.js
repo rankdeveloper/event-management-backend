@@ -9,6 +9,7 @@ const {
   enterMe,
   logout,
   updateUser,
+  guestSignIn,
 } = require("../controllers/userController");
 
 router.post("/register", register);
@@ -17,5 +18,6 @@ router.post("/login", login);
 router.get("/me", authenticateToken, enterMe);
 router.post("/logout", logout);
 router.put("/update", upload.single("pic"), authenticateToken, updateUser);
+router.post("/guest-sign", guestSignIn);
 
 module.exports = router;

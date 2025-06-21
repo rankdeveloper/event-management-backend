@@ -86,8 +86,8 @@ const getOneEvent = async (req, res) => {
     }
 
     const event = await Event.findById(id)
-      .populate("createdBy", "username email")
-      .populate("attendees", "username email");
+      .populate("createdBy", "username email pic")
+      .populate("attendees", "username email pic");
 
     if (!event) {
       return res.status(404).json({ message: "Event not found" });

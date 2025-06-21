@@ -84,6 +84,7 @@ const enterMe = async (req, res, next) => {
         email: user.email,
         username: user.username,
         pic: user.pic,
+        isGuest: user.isGuest,
       },
     });
   } catch (error) {
@@ -147,10 +148,34 @@ const updateUser = async (req, res) => {
   }
 };
 
+const guestSignIn = async (req, res) => {
+  try {
+    const guestUser = await User.create({
+      isGuest: true,
+      username: "Guest",
+      email: "guest@gmail.com",
+    });
+    const token = jwt.sign(
+      {
+        id: guestUser._id,
+        username: guestUser.username,
+        isGuest: guestUser.isGuest,
+      },
+      process.env.secret_key_jwt,
+      { expiresIn: "1h" }
+    );
+
+    res.json({ token });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to login as Guest" });
+  }
+};
+
 module.exports = {
   register,
   login,
   enterMe,
   logout,
   updateUser,
+  guestSignIn,
 };
