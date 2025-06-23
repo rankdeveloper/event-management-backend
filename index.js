@@ -9,6 +9,7 @@ const eventRoutes = require("./routes/eventRoutes");
 const connectDB = require("./config/db");
 const cors = require("cors");
 const message = require("./models/Message");
+const { sendEmail } = require("./cron");
 
 const app = express();
 const server = http.createServer(app);
@@ -58,7 +59,7 @@ app.use(express.urlencoded({ extended: true }));
 const PORT = process.env.PORT || 5000;
 connectDB();
 
-console.log("Cloudinary API Key:", process.env.API_KEY);
+sendEmail();
 
 app.use("/user", userRoutes);
 app.use("/events", eventRoutes);
