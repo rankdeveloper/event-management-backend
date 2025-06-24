@@ -5,8 +5,6 @@ const Event = require("../models/Event");
 
 const postEvent = async (req, res) => {
   try {
-    console.log("Request Headers:", req.headers);
-    console.log("Request Body:", req.body);
     const {
       title,
       description,
