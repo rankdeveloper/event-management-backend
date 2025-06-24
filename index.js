@@ -13,20 +13,25 @@ const { sendEmail } = require("./cron");
 
 const app = express();
 const server = http.createServer(app);
+const origin =
+  process.env.NODE_ENV === "production"
+    ? "https://rank-evenza.vercel.app"
+    : "http://localhost:5173";
+
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: origin,
     methods: ["GET", "POST"],
   },
 });
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://event-management-fullstack.netlify.app",
+  "https://rank-evenza.vercel.app",
 ];
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: origin,
     credentials: true,
   })
 );
