@@ -71,9 +71,25 @@ const postEvent = async (req, res) => {
 };
 
 const getEvents = async (req, res) => {
-  const upComingEvents = await Event.find({ date: { $gte: new Date() } });
-  // const events = await Event.find();
-  res.json(upComingEvents);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 12;
+  const skip = (page - 1) * limit;
+
+  const upComingEvents = await Event.find({ date: { $gte: new Date() } })
+    .sort({ date: 1 })
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Event.countDocuments({ date: { $gte: new Date() } });
+  const hasMore = skip + limit < total;
+
+  res.json({
+    events: upComingEvents,
+    hasMore,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+  });
 };
 
 const getOneEvent = async (req, res) => {
@@ -120,7 +136,7 @@ const updateEvent = async (req, res) => {
     if (new Date(date) < new Date()) {
       return res
         .status(500)
-        .json({ message: "Event Date should not not be in past" });
+        .json({ message: "Event Date should  not be in past" });
       return;
     }
 
@@ -360,12 +376,18 @@ const statsForChart = async (req, res) => {
       },
     ]);
 
-    //total events
     const totalEvents = await (await Event.find()).length;
     const upComingEvents = await Event.find({ date: { $gte: new Date() } });
 
+    const expiredEvents = await Event.find({ date: { $lt: new Date() } });
+    expiredEvents.forEach(async (event) => {
+      await Event.findByIdAndUpdate(event._id, { expired: true });
+    });
+    // console.log("expiredEvents : ", expiredEvents.length)
+
     res.json({
       totalEvents: totalEvents,
+      totalExpiredEvents: expiredEvents.length,
       completedEvents: completedEvents[0]?.total || 0,
       activeEvents: activeEvents[0]?.total || 0,
       totalAttendees: totalAttendees[0]?.total || 0,
@@ -379,6 +401,57 @@ const statsForChart = async (req, res) => {
   }
 };
 
+const homeStat = async (req, res) => {
+  try {
+    const totalEvents = await (await Event.find()).length;
+    const completedEvents = await Event.aggregate([
+      {
+        $match: { completed: true },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          total: 1,
+        },
+      },
+    ]);
+
+    const totalAttendees = await Event.aggregate([
+      {
+        $project: {
+          attendeeCount: { $size: "$attendees" },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$attendeeCount" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          total: 1,
+        },
+      },
+    ]);
+
+    res.json({
+      totalEvents: totalEvents,
+      completedEvents: completedEvents[0]?.total || 0,
+      totalAttendees: totalAttendees[0]?.total || 0,
+    });
+  } catch (error) {
+    res.status(500).message({ message: "Internal server error", error });
+  }
+};
+
 module.exports = {
   postEvent,
   getEvents,
@@ -389,4 +462,5 @@ module.exports = {
   unregisterFromEvent,
   completedEvent,
   statsForChart,
+  homeStat,
 };
