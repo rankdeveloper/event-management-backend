@@ -34,7 +34,7 @@ const sendEmail = async function () {
         <body>
           <h1 style="text-align: center; font-color: #ff0000;">Reminder: Event ${event.title} is coming soon!</h1>
           
-          <div style="text-align: center; display: flex; flex-direction: column; align-items: center;"> 
+          <div> 
             <p style="text-align: center;">Hey user , ${attendee.username}</p>
             <p style="text-align: center;">Just a heads-up: your event  is scheduled on ${event.date}.</p>
             <p style="text-align: center;">Location: ${event.location}</p>

@@ -1,15 +1,15 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const { Server } = require("socket.io");
 const http = require("http");
-require("dotenv").config();
 
+const cron = require("node-cron");
 const userRoutes = require("./routes/userRoutes");
 const eventRoutes = require("./routes/eventRoutes");
 const connectDB = require("./config/db");
 const cors = require("cors");
 const message = require("./models/Message");
 const { sendEmail } = require("./cron");
+require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
@@ -64,7 +64,10 @@ app.use(express.urlencoded({ extended: true }));
 const PORT = process.env.PORT || 5000;
 connectDB();
 
-sendEmail();
+cron.schedule("0 0 * * *", () => {
+  sendEmail();
+  console.log("cron job done");
+});
 
 app.use("/user", userRoutes);
 app.use("/events", eventRoutes);
