@@ -448,7 +448,7 @@ const homeStat = async (req, res) => {
       totalAttendees: totalAttendees[0]?.total || 0,
     });
   } catch (error) {
-    res.status(500).message({ message: "Internal server error", error });
+    res.status(500).json({ message: "Internal server error", error });
   }
 };
 
