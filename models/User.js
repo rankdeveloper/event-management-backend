@@ -9,6 +9,10 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  bookmarks: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Event",
+  }],
   createdAt: { type: Date, default: Date.now },
 });
 

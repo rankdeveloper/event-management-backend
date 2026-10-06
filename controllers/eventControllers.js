@@ -74,13 +74,20 @@ const getEvents = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 12;
   const skip = (page - 1) * limit;
+  const { search, category, sort } = req.query;
 
-  const upComingEvents = await Event.find({ date: { $gte: new Date() } })
-    .sort({ date: 1 })
+  const filter = { date: { $gte: new Date() } };
+  if (search) filter.title = { $regex: search, $options: "i" };
+  if (category && category !== "All") filter.category = category;
+
+  const sortOption = sort === "oldest" ? { date: 1 } : sort === "popular" ? { attendeesCount: -1 } : { date: 1 };
+
+  const upComingEvents = await Event.find(filter)
+    .sort(sortOption)
     .skip(skip)
     .limit(limit);
 
-  const total = await Event.countDocuments({ date: { $gte: new Date() } });
+  const total = await Event.countDocuments(filter);
   const hasMore = skip + limit < total;
 
   res.json({
@@ -452,6 +459,56 @@ const homeStat = async (req, res) => {
   }
 };
 
+const bookmarkEvent = async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const eventId = req.params.id;
+    const isBookmarked = user.bookmarks?.includes(eventId);
+
+    if (isBookmarked) {
+      user.bookmarks = user.bookmarks.filter((b) => b.toString() !== eventId);
+    } else {
+      if (!user.bookmarks) user.bookmarks = [];
+      user.bookmarks.push(eventId);
+    }
+    await user.save();
+    res.json({ bookmarked: !isBookmarked, bookmarks: user.bookmarks });
+  } catch (error) {
+    res.status(500).json({ message: "Error toggling bookmark", error });
+  }
+};
+
+const getBookmarks = async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const user = await User.findById(req.user.id).populate({
+      path: "bookmarks",
+      match: { date: { $gte: new Date() } },
+    });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ bookmarks: user.bookmarks || [] });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching bookmarks", error });
+  }
+};
+
+const getMyEvents = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const created = await Event.find({ createdBy: userId }).sort({ date: -1 });
+    const attending = await Event.find({
+      attendees: userId,
+      createdBy: { $ne: userId },
+    }).sort({ date: -1 });
+    res.json({ created, attending });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching my events", error });
+  }
+};
+
 module.exports = {
   postEvent,
   getEvents,
@@ -463,4 +520,7 @@ module.exports = {
   completedEvent,
   statsForChart,
   homeStat,
+  bookmarkEvent,
+  getBookmarks,
+  getMyEvents,
 };
