@@ -3,6 +3,27 @@ const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
 const Event = require("../models/Event");
 
+const buildDefaultTicketTypes = (maxAttendees = 100) => [
+  {
+    name: "General Admission",
+    price: 0,
+    capacity: Number(maxAttendees) || 100,
+  },
+];
+
+const normalizeTicketTypes = (event) => {
+  const source =
+    Array.isArray(event?.ticketTypes) && event.ticketTypes.length
+      ? event.ticketTypes
+      : buildDefaultTicketTypes(event?.maxAttendees);
+
+  return source.map((ticket) => ({
+    name: ticket?.name || "General Admission",
+    price: Number(ticket?.price ?? 0),
+    capacity: Number(ticket?.capacity ?? event?.maxAttendees ?? 100),
+  }));
+};
+
 const postEvent = async (req, res) => {
   try {
     const {
@@ -13,6 +34,7 @@ const postEvent = async (req, res) => {
       category,
       maxAttendees,
       createdBy,
+      ticketTypes,
     } = req.body;
     const imageFile = req.file;
 
@@ -20,7 +42,6 @@ const postEvent = async (req, res) => {
       return res
         .status(500)
         .json({ message: "Event Date should not not be in past" });
-      return;
     }
 
     if (
@@ -45,11 +66,13 @@ const postEvent = async (req, res) => {
           (error, result) => {
             if (error) return reject(error);
             resolve(result.secure_url);
-          }
+          },
         );
         streamifier.createReadStream(imageFile.buffer).pipe(stream);
       });
     }
+
+    const parsedTicketTypes = ticketTypes ? JSON.parse(ticketTypes) : [];
 
     const newEvent = new Event({
       title,
@@ -60,6 +83,9 @@ const postEvent = async (req, res) => {
       maxAttendees,
       createdBy,
       image: uploadedImageUrl || null,
+      ticketTypes: parsedTicketTypes.length
+        ? parsedTicketTypes
+        : buildDefaultTicketTypes(maxAttendees),
     });
 
     await newEvent.save();
@@ -80,7 +106,12 @@ const getEvents = async (req, res) => {
   if (search) filter.title = { $regex: search, $options: "i" };
   if (category && category !== "All") filter.category = category;
 
-  const sortOption = sort === "oldest" ? { date: 1 } : sort === "popular" ? { attendeesCount: -1 } : { date: 1 };
+  const sortOption =
+    sort === "oldest"
+      ? { date: 1 }
+      : sort === "popular"
+        ? { attendeesCount: -1 }
+        : { date: 1 };
 
   const upComingEvents = await Event.find(filter)
     .sort(sortOption)
@@ -113,6 +144,10 @@ const getOneEvent = async (req, res) => {
     if (!event) {
       return res.status(404).json({ message: "Event not found" });
     }
+
+    event.ticketTypes = normalizeTicketTypes(event);
+    await event.save();
+
     res.json(event);
   } catch (error) {
     console.error("Error fetching event:", error);
@@ -169,7 +204,7 @@ const updateEvent = async (req, res) => {
           (error, result) => {
             if (error) return reject(error);
             resolve(result.secure_url);
-          }
+          },
         );
         streamifier.createReadStream(imageFile.buffer).pipe(stream);
       });
@@ -249,7 +284,7 @@ const unregisterFromEvent = async (req, res) => {
     }
 
     event.attendees = event.attendees.filter(
-      (attendee) => attendee.toString() !== req.user.id
+      (attendee) => attendee.toString() !== req.user.id,
     );
     await event.save();
 
@@ -363,7 +398,7 @@ const statsForChart = async (req, res) => {
             $gte: new Date(
               new Date().getFullYear(),
               new Date().getMonth() - 1,
-              1
+              1,
             ),
             $lt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },

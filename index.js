@@ -5,6 +5,7 @@ const http = require("http");
 const cron = require("node-cron");
 const userRoutes = require("./routes/userRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const ticketRoutes = require("./routes/ticketRoutes");
 const connectDB = require("./config/db");
 const cors = require("cors");
 const message = require("./models/Message");
@@ -71,6 +72,7 @@ cron.schedule("0 0 * * *", () => {
 
 app.use("/user", userRoutes);
 app.use("/events", eventRoutes);
+app.use("/tickets", ticketRoutes);
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);

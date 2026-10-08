@@ -22,7 +22,9 @@
     "node-cron": "^4.1.1",
     "nodemailer": "^7.0.3",
     "nodemon": "^3.1.9",
+    "qrcode": "^1.5.4",
     "socket.io": "^4.8.1",
-    "streamifier": "^0.1.1"
+    "streamifier": "^0.1.1",
+    "uuid": "^14.0.2"
   }
 }

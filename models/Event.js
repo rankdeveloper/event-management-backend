@@ -45,9 +45,14 @@ const EventSchema = new mongoose.Schema({
     type: String,
   },
 
-  completed: {
-    type: Boolean,
-  },
+  completed: { type: Boolean },
+  ticketTypes: [
+    {
+      name: { type: String, required: true },
+      price: { type: Number, required: true, default: 0 },
+      capacity: { type: Number, required: true },
+    },
+  ],
 });
 
 const Event = mongoose.model("Event", EventSchema);
