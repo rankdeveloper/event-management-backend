@@ -1,7 +1,8 @@
-const cloudinary = require("../config/cloudinary");
+import cloudinary from "../config/cloudinary.js";
 
-const streamifier = require("streamifier");
-const Event = require("../models/Event");
+import streamifier from "streamifier";
+import Event from "../models/Event.js";
+import User from "../models/User.js";
 
 const buildDefaultTicketTypes = (maxAttendees = 100) => [
   {
@@ -496,7 +497,6 @@ const homeStat = async (req, res) => {
 
 const bookmarkEvent = async (req, res) => {
   try {
-    const User = require("../models/User");
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -518,7 +518,6 @@ const bookmarkEvent = async (req, res) => {
 
 const getBookmarks = async (req, res) => {
   try {
-    const User = require("../models/User");
     const user = await User.findById(req.user.id).populate({
       path: "bookmarks",
       match: { date: { $gte: new Date() } },
@@ -544,7 +543,7 @@ const getMyEvents = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   postEvent,
   getEvents,
   updateEvent,

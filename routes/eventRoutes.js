@@ -1,9 +1,9 @@
-const express = require("express");
-const multer = require("multer");
+import express from "express";
+import multer from "multer";
 const upload = multer({ storage: multer.memoryStorage() });
 
 const router = express.Router();
-const {
+import {
   postEvent,
   getEvents,
   updateEvent,
@@ -17,8 +17,8 @@ const {
   bookmarkEvent,
   getBookmarks,
   getMyEvents,
-} = require("../controllers/eventControllers");
-const { authenticateToken } = require("../middlewares/authenticate");
+} from "../controllers/eventControllers.js";
+import { authenticateToken } from "../middlewares/authenticate.js";
 
 router.get("/home-stat", homeStat);
 router.get("/stats", statsForChart);
@@ -35,4 +35,4 @@ router.delete("/:id", authenticateToken, deleteEvent);
 router.post("/:id/register", authenticateToken, registerForEvent);
 router.delete("/:id/register", authenticateToken, unregisterFromEvent);
 
-module.exports = router;
+export default router;

@@ -1,5 +1,5 @@
-const nodemailer = require("nodemailer");
-const Event = require("./models/Event");
+import nodemailer from "nodemailer";
+import Event from "./models/Event.js";
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
@@ -48,4 +48,4 @@ const sendEmail = async function () {
   }
 };
 
-module.exports = { sendEmail };
+export { sendEmail };

@@ -1,16 +1,16 @@
-const express = require("express");
-const { Server } = require("socket.io");
-const http = require("http");
+import express from "express";
+import { Server } from "socket.io";
+import http from "http";
 
-const cron = require("node-cron");
-const userRoutes = require("./routes/userRoutes");
-const eventRoutes = require("./routes/eventRoutes");
-const ticketRoutes = require("./routes/ticketRoutes");
-const connectDB = require("./config/db");
-const cors = require("cors");
-const message = require("./models/Message");
-const { sendEmail } = require("./cron");
-require("dotenv").config();
+import cron from "node-cron";
+import userRoutes from "./routes/userRoutes.js";
+import eventRoutes from "./routes/eventRoutes.js";
+import ticketRoutes from "./routes/ticketRoutes.js";
+import connectDB from "./config/db.js";
+import cors from "cors";
+import Message from "./models/Message.js";
+import { sendEmail } from "./cron.js";
+import "dotenv/config";
 
 const app = express();
 const server = http.createServer(app);
@@ -42,9 +42,8 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -67,7 +66,7 @@ io.on("connection", (socket) => {
   socket.on("join_room", async (eventId) => {
     socket.join(eventId);
     console.log(`User joined room: ${eventId}`);
-    const messages = await message.find({ eventId }).sort({ timestamp: 1 });
+    const messages = await Message.find({ eventId }).sort({ timestamp: 1 });
     socket.emit("previous_messages", messages);
   });
 
@@ -78,7 +77,7 @@ io.on("connection", (socket) => {
     };
 
     try {
-      const saveMessage = await message.create(messageData);
+      const saveMessage = await Message.create(messageData);
       io.to(data.eventId).emit("receive_message", saveMessage);
       console.log("Message sent:", messageData);
     } catch (err) {

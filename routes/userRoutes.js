@@ -1,16 +1,16 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const multer = require("multer");
+import multer from "multer";
 const upload = multer({ storage: multer.memoryStorage() });
-const { authenticateToken } = require("../middlewares/authenticate");
-const {
+import { authenticateToken } from "../middlewares/authenticate.js";
+import {
   register,
   login,
   enterMe,
   logout,
   updateUser,
   guestSignIn,
-} = require("../controllers/userController");
+} from "../controllers/userController.js";
 
 router.post("/register", register);
 
@@ -20,4 +20,4 @@ router.post("/logout", logout);
 router.put("/update", upload.single("pic"), authenticateToken, updateUser);
 router.post("/guest-sign", guestSignIn);
 
-module.exports = router;
+export default router;

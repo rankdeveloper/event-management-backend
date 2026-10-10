@@ -1,6 +1,6 @@
-const { v4: uuidv4 } = require("uuid");
-const Ticket = require("../models/Ticket");
-const Event = require("../models/Event");
+import { v4 as uuidv4 } from "uuid";
+import Ticket from "../models/Ticket.js";
+import Event from "../models/Event.js";
 
 const bookTicket = async (req, res) => {
   try {
@@ -118,4 +118,4 @@ const checkIn = async (req, res) => {
   }
 };
 
-module.exports = { bookTicket, getMyTickets, getEventTickets, checkIn };
+export { bookTicket, getMyTickets, getEventTickets, checkIn };

@@ -1,5 +1,5 @@
-require("dotenv").config();
-const mongoose = require("mongoose");
+import "dotenv/config";
+import mongoose from "mongoose";
 
 const mongoUrl =
   process.env.NODE_ENV === "development"
@@ -15,4 +15,4 @@ const connectDB = () => {
     .catch((err) => console.error(err));
 };
 
-module.exports = connectDB;
+export default connectDB;

@@ -1,9 +1,9 @@
-const User = require("../models/User");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const cloudinary = require("../config/cloudinary");
+import User from "../models/User.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import cloudinary from "../config/cloudinary.js";
 
-const streamifier = require("streamifier");
+import streamifier from "streamifier";
 
 const register = async (req, res) => {
   try {
@@ -60,7 +60,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, username: user.username },
       process.env.secret_key_jwt,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
     console.log("Generated token:", token);
 
@@ -123,7 +123,7 @@ const updateUser = async (req, res) => {
           (error, result) => {
             if (error) return reject(error);
             resolve(result.secure_url);
-          }
+          },
         );
         streamifier.createReadStream(imageFile.buffer).pipe(stream);
       });
@@ -162,7 +162,7 @@ const guestSignIn = async (req, res) => {
         isGuest: guestUser.isGuest,
       },
       process.env.secret_key_jwt,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     res.json({ token });
@@ -171,11 +171,4 @@ const guestSignIn = async (req, res) => {
   }
 };
 
-module.exports = {
-  register,
-  login,
-  enterMe,
-  logout,
-  updateUser,
-  guestSignIn,
-};
+export { register, login, enterMe, logout, updateUser, guestSignIn };
